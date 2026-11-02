@@ -6,13 +6,12 @@ I use Google Calendar as my primary note-taking mechanism. People generally see 
 * It solves for fast ‘time-to-keyboard’ (I’ve found it’s often faster to create a new event in GCal than it is to load a new blank note in many of the major note apps, even when using the "new note" home screen widget...) 
 * I can easily search for things by ‘fuzzy relative dates’ because the events are added 'temporally near' memorable events. "Alberto said this interesting thing at our last coffee catch-up which was roughly mid-March..."
 * It's easy to distinguish between 'nostalgic notions' and 'imminent to-dos' by simply putting them in the past/future on my calendar. 
-* I want a single interface for note entry across a wide variety of note-types (Is this something to I want to remember later this week or to read again in a decade? Is this simply an amusing notion or a tactical next step?)
 
-For a few years now, I’ve been using the GCal notes method and it’s worked okay but still requires me to closely review this weakly-structured littering of notes to surface and schedule important action items. I want to surround myself with technology that helps keep me in a low-constraints, creative headspace. Sorting through a file directory or reading notes closely line-by-line is the exact opposite – a rigid, mechanistic way of looking. This felt like a good task for an LLM-powered agent – sift through noisy data, classify them for triage, and help surface important action items. An attention aid that I can fine-tune to my goals.
+For a few years now, I’ve been using the GCal notes method. It’s worked but still requires me to closely review a weakly-structured littering of notes to surface important items. Sorting through a file directory or reading notes line-by-line is a rigid, mechanistic way of looking, and I found it was often polluting my creative flow. It felt like a good task to offload to an LLM-powered agent – sift through noisy data, classify them for triage, and suggest scheduled tasks to stay on track. I was hoping for an attention aid that could do the heavy-lifting organizational work, so I could preserve my creative headspace and continue posting stream-of-conscious notes without pausing to file them in the right place. 
 
-### 'calnotes' is a system I built that reads those notes every morning, works out which are tasks and which goals they serve, asks Claude to plan time for them around my real schedule, emails me the plan, and puts the blocks I approve on my calendar.
+### 'calnotes' is a system I built that reads my unstructured notes every morning, works out which are tasks and which goals they serve, asks Claude to plan time for them around my real schedule, emails me the plan, and puts the blocks I approve on my calendar.
 
-I treated it as a deeply educational task -- What does it feel like to build alongside a coding agent? How do various models across the cost-capability pareto perform at elements of this problem (e.g., fuzzy matching)? Is it changing my day-to-day productivity by suggesting actually useful tasks? What does it feel like to work with sensitive data (e.g., strict boundary controls)?
+I treated this project as primarily an educational tool -- What does it feel like to build alongside a coding agent in Sep 2026? How do various models across the cost-capability pareto perform at elements of this problem (e.g., fuzzy matching)? Is it changing my day-to-day productivity by suggesting actually useful tasks? How can you design agentic systems that handle sensitive data (e.g., strict boundary controls)?
 
 ### A few rules of the road:
 
@@ -20,7 +19,6 @@ I treated it as a deeply educational task -- What does it feel like to build alo
 - **Nothing a model writes can change my calendar.** Approval is a fixed reply grammar parsed by plain code, so text in an email can't talk the system into anything.
 - **It runs unattended** on a Mac mini: scheduled jobs, idempotent writes, retries, a dead man's switch.
 
-> **About the data in this repo.** The pipeline was built and evaluated on 211 of my real calendar notes that I manually tagged as a baseline, which aren't published. Everything here runs on an invented twin dataset (`tests/fixtures/`, copied to `data/`): same structure, same label distribution, same rule behaviour note by note, but every name, place and word is made up.
 
 ## How it works
 
@@ -36,21 +34,9 @@ There are two calendars - my "raw notes" calendar that I add to throughout the d
 8. An 'approving' agent is configured to review my inbox every 15mins for such replies and uses a deterministic parser + state machine to write accepted tasks to calendar.
 9. Every decision logged as eval data to track engagement with the tool and performance of the suggestion engine.
 
-
-| Folder | What's in it |
-|---|---|
-| `triage/` | Stage 1 rules (`detect.py`), local and frontier model backends, few-shot selection, output schemas |
-| `boundary/` | The trust boundary: privacy levels, pseudonymizing vault, egress gate. See `boundary/CONTRACT.md` |
-| `planner/` | The agent loop and its tools (free/busy, propose a block) |
-| `digest/` | Builds and sends the email digest |
-| `approve/` | Reply parsing, the approval state machine, Google Calendar and Gmail adapters |
-| `ingest/` | Live pull from the notes calendar, and the ledger: each note's status derived by replaying past decisions |
-| `ops/` | Scheduler (launchd), sign-in helper, Mac mini runbook, public export |
-| `tools/` | Hand-labeling tool, label checks, eval comparison |
-
 ## Results: local vs. frontier triage
 
-165 held-out notes, hand-labeled, never seen by any prompt. Scores are from my real notes; the eval code here is the same.
+I hand-labeled 165 actual calendar notes (removed from this public repo) to evaluate the model's performance in a classification task. The models were shown a raw note like "risks of reward hacking in rl training" and attempted to correctly classify it as "learning-topic" in service of goal 1 "get an applied ai job". 
 
 | Model | Type | Coarse | Goals | s/note | Cost per run |
 |---|---|---|---|---|---|
@@ -88,6 +74,9 @@ A more useful framing is to plot every note along this 2-dimensional spectrum of
 | **Nostalgic notion**  | Digest of the week's best moments | Long-form review with selections from all historical entries |
 
 
+As mentioned above, this classification tasks feels like a ripe opportunity for use of a System One model like Jev as it can allow for robust handling of messy input while achieving better marks on cost and speed. Especially if I'd like to scale the 'digest' protocol to review a wider band of notes data (currently limited to trailing 2 weeks), the speed efficiencies gained from using Jev could ensure the morning digest runs in a reasonable amount of time (~5-10 minutes).
+
+
 ## Run it (invented data, no accounts needed)
 
 ```bash
@@ -100,6 +89,20 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ```
 
 Running it against your own calendar needs a Google Cloud OAuth client, two accounts (one read-only for notes) and an Anthropic API key; `ops/MAC_MINI.md` walks through the full setup, and `ops/signin.py` signs in each token with its own least-privilege scope.
+
+| Folder | What's in it |
+|---|---|
+| `triage/` | Stage 1 rules (`detect.py`), local and frontier model backends, few-shot selection, output schemas |
+| `boundary/` | The trust boundary: privacy levels, pseudonymizing vault, egress gate. See `boundary/CONTRACT.md` |
+| `planner/` | The agent loop and its tools (free/busy, propose a block) |
+| `digest/` | Builds and sends the email digest |
+| `approve/` | Reply parsing, the approval state machine, Google Calendar and Gmail adapters |
+| `ingest/` | Live pull from the notes calendar, and the ledger: each note's status derived by replaying past decisions |
+| `ops/` | Scheduler (launchd), sign-in helper, Mac mini runbook, public export |
+| `tools/` | Hand-labeling tool, label checks, eval comparison |
+
+
+> **About the data in this repo.** The pipeline was built and evaluated on 211 of my real calendar notes that I manually tagged as a baseline, which aren't published. Everything here runs on an invented twin dataset (`tests/fixtures/`, copied to `data/`): same structure, same label distribution, same rule behaviour note by note, but every name, place and word is made up.
 
 ## Design decisions worth reading
 
