@@ -1,16 +1,24 @@
 # calnotes
 
-**An AI agent that turns messy calendar notes into a daily plan I approve by email, built so my raw notes never leave my machine.**
+**A hybrid local/frontier AI agent that turns messy, private notes into an approved daily plan, built so my raw notes never leave my machine.**
 
-I use Google Calendar as a scratchpad: a 60-minute "event" that says `text nico. and ben okafor` is really a to-do; one that says `a quiet kind of reckless` is a phrase I liked. calnotes reads those notes every morning, works out which are tasks and which goals they serve, asks Claude to plan time for them around my real schedule, emails me the plan, and puts the blocks I approve on my calendar.
+I use Google Calendar as my primary note-taking mechanism. People generally see this as a bit unusual with so many dedicated "notes apps" on the market.  Why? 
+* It solves for fast ‘time-to-keyboard’ (I’ve found it’s faster to create a new event in GCal than it is to load a new blank note in many of the major note apps, even when using the "new note" home screen widget...) 
+* I can easily search for things by ‘fuzzy relative dates’ because the events are added 'temporally near' memorable events. "Alberto said this interesting thing at our last coffee catch-up which was roughly mid-March..."
+* It's easy to distinguish between 'nostalgic notes' and 'imminent to-dos' by simply putting them in the past/future on my calendar. 
+* I want a single interface for note entry but the type of note varies widely (Is this something to I want to remember later this week or to read again in a decade? Is this simply an amusing notion or a tactical next step?)
 
-The interesting part isn't the planning. It's doing it over data I treat as sensitive:
+For a few years now, I’ve been using the GCal notes method and it’s worked okay but still requires me to closely review this littering of notes to surface and schedule important action items. I want to surround myself with technology that helps keep me in a low-constraints creative flow state. Sorting through a notes directory or reading notes closely line-by-line is the exact opposite – a rigid, mechanistic way of looking. This felt like a good task for an LLM-powered agent – sift through noisy data, classify them for triage, and help surface important action items. 
+
+'calnotes' is a system I built that reads those notes every morning, works out which are tasks and which goals they serve, asks Claude to plan time for them around my real schedule, emails me the plan, and puts the blocks I approve on my calendar. 
+
+I treated it as a deeply educational task -- What does it feel like to build alongside a coding agent? How do various models across the cost-capability pareto frontier perform at elements of this problem (e.g., fuzzy matching)? Is it changing my day-to-day productivity by suggesting actually useful tasks? What does it feel like to work with sensitive data and agents (e.g., strict boundary controls)
 
 - **Raw notes stay local.** A deterministic rule stage and a local model (Ollama) do all reading of note text. Only a pseudonymized, allowlisted batch crosses to Claude, through an egress gate that fails closed.
 - **Nothing a model writes can change my calendar.** Approval is a fixed reply grammar parsed by plain code, so text in an email can't talk the system into anything.
 - **It runs unattended** on a Mac mini: scheduled jobs, idempotent writes, retries, a dead man's switch.
 
-> **About the data in this repo.** The pipeline was built and evaluated on 211 of my real calendar notes, which aren't published. Everything here runs on an invented twin dataset (`tests/fixtures/`, copied to `data/`): same structure, same label distribution, same rule behaviour note by note, but every name, place and word is made up.
+> **About the data in this repo.** The pipeline was built and evaluated on 211 of my real calendar notes that I manually tagged as a baseline, which aren't published. Everything here runs on an invented twin dataset (`tests/fixtures/`, copied to `data/`): same structure, same label distribution, same rule behaviour note by note, but every name, place and word is made up.
 
 ## How it works
 
