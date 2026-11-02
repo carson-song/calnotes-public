@@ -73,6 +73,7 @@ A more useful framing is to plot every note along this 2-dimensional spectrum of
 | **Tactical action**   | **_calnotes daily scheduler (this app)_**  | Monthly/quarterly planning and goal-setting |
 | **Nostalgic notion**  | Digest of the week's best moments | Long-form review with selections from all historical entries |
 
+### System One as local classification model and scaling digest window
 
 As mentioned above, this classification tasks feels like a ripe opportunity for use of a System One model like Jev as it can allow for robust handling of messy input while achieving better marks on cost and speed. Especially if I'd like to scale the 'digest' protocol to review a wider band of notes data (currently limited to trailing 2 weeks), the speed efficiencies gained from using Jev could ensure the morning digest runs in a reasonable amount of time (~5-10 minutes).
 
