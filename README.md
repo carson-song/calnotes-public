@@ -2,23 +2,34 @@
 
 **A hybrid local/frontier AI agent that turns messy, private notes into an approved daily plan.**
 
-I use Google Calendar as my primary note-taking mechanism. People generally see this as a bit unusual with so many dedicated "notes apps" on the market.  Why? 
-* It solves for fast ‘time-to-keyboard’ (I’ve found it’s often faster to create a new event in GCal than it is to load a new blank note in many of the major note apps, even when using the "new note" home screen widget...) 
+###  Problem statement
+I use Google Calendar as my primary note-taking mechanism. People generally see this as a bit unusual with so many dedicated "notes apps" on the market, but...
+* It solves for fast ‘time-to-keyboard’. Ideas are fleeting, and I need to be able to quickly add notes with only one hand free.  (I’ve found it’s often faster to create a new event in GCal than it is to load a new blank note in many of the major note apps, even when using the "new note" home screen widget...) 
 * I can easily search for things by ‘fuzzy relative dates’ because the events are added 'temporally near' memorable events. "Alberto said this interesting thing at our last coffee catch-up which was roughly mid-March..."
 * It's easy to distinguish between 'nostalgic notions' and 'imminent to-dos' by simply putting them in the past/future on my calendar. 
 
-For a few years now, I’ve been using the GCal notes method. It’s worked but still requires me to closely review a weakly-structured littering of notes to surface important items. Sorting through a file directory or reading notes line-by-line is a rigid, mechanistic way of looking, and I found it was often polluting my creative flow. It felt like a good task to offload to an LLM-powered agent – sift through noisy data, classify them for triage, and suggest scheduled tasks to stay on track. I was hoping for an attention aid that could do the heavy-lifting organizational work, so I could preserve my creative headspace and continue posting stream-of-conscious notes without pausing to file them in the right place. 
+For a few years now, I’ve been using the GCal notes method. It’s worked but still requires me to closely review a weakly-structured littering of notes to surface important items. Sorting through a file directory or reading notes line-by-line is a rigid, mechanistic way of looking, and I've found that it often pollutes my creative flow. It feels like a good task to offload to an LLM-powered agent – sift through noisy data, classify them for triage, and suggest scheduled tasks to stay on track. 
 
-### 'calnotes' is a system I built that reads my unstructured notes every morning, works out which are tasks and which goals they serve, asks Claude to plan time for them around my real schedule, emails me the plan, and puts the blocks I approve on my calendar.
+I hope to make an attention aid that can do the heavy-lifting organizational work, so I can preserve an unburdened creative headspace and continue my unstructured notetaking habit.
 
-I treated this project as primarily an educational tool -- What does it feel like to build alongside a coding agent in Sep 2026? How do various models across the cost-capability pareto perform at elements of this problem (e.g., fuzzy matching)? Is it changing my day-to-day productivity by suggesting actually useful tasks? How can you design agentic systems that handle sensitive data (e.g., strict boundary controls)?
+### _Proof of concept:_ 'calnotes' is a system that reads my unstructured notes every morning, identifies actionable tasks that are linked to my goals, asks Claude to plan time for them around my real schedule, emails me the plan, and puts the blocks I approve on my calendar.
 
-### A few rules of the road:
+I treated this project as primarily an educational tool, especially simulating questions an FDE may face on the job:
+* What does it feel like to build alongside a coding agent in Oct 2026? 
+* How do various models across the cost-capability pareto perform at elements of this problem (e.g., semantic classification)? 
+* Is it changing my day-to-day productivity by suggesting actually useful tasks? 
+* How can you design agentic systems that handle sensitive data (e.g., strict boundary controls)?
+* How can you solve for common pitfalls like prompt injection and runaway token costs through system design?
+
+A few important design constraints:
 
 - **Raw notes stay local.** A deterministic rule stage and a local model (Ollama) do all reading of note text. Only a pseudonymized, allowlisted batch crosses to an external, frontier model (Claude), through an egress gate that fails closed. (The notes live in GCal -- of course, they are exposed there -- but I'm simulating 'local boundary' for the agentic workflows as a proof of concept)
 - **Nothing a model writes can change my calendar.** Approval is a fixed reply grammar parsed by plain code, so text in an email can't talk the system into anything.
 - **It runs unattended** on a Mac mini: scheduled jobs, idempotent writes, retries, a dead man's switch.
-
+- **Least privilege, per token.** Four Google tokens, each with one scope and one account: read-only for notes, events-only for the plans calendar, send-only and read-only Gmail on a sandbox mailbox. A runtime check refuses to run if a token is signed in to the wrong account.
+- **State is derived, not stored.** The ledger (what's open, scheduled, done, snoozed) is replayed from an append-only log of digests and decisions. No second copy to drift.
+- **Fail closed everywhere it matters.** Unmapped placeholders block the digest; calendar errors become tool errors, never "free time"; malformed labels are refused before they become ground truth; the public export refuses to publish if it finds a private name.
+- **Measure what the product uses.** The coarse score exists because the planner doesn't care whether a note is a musing or a phrase I liked, only whether it's actionable.
 
 ## How it works
 
@@ -104,13 +115,6 @@ Running it against your own calendar needs a Google Cloud OAuth client, two acco
 
 
 > **About the data in this repo.** The pipeline was built and evaluated on 211 of my real calendar notes that I manually tagged as a baseline, which aren't published. Everything here runs on an invented twin dataset (`tests/fixtures/`, copied to `data/`): same structure, same label distribution, same rule behaviour note by note, but every name, place and word is made up.
-
-## Design decisions worth reading
-
-- **Least privilege, per token.** Four Google tokens, each with one scope and one account: read-only for notes, events-only for the plans calendar, send-only and read-only Gmail on a sandbox mailbox. A runtime check refuses to run if a token is signed in to the wrong account.
-- **State is derived, not stored.** The ledger (what's open, scheduled, done, snoozed) is replayed from an append-only log of digests and decisions. No second copy to drift.
-- **Fail closed everywhere it matters.** Unmapped placeholders block the digest; calendar errors become tool errors, never "free time"; malformed labels are refused before they become ground truth; the public export refuses to publish if it finds a private name.
-- **Measure what the product uses.** The coarse score exists because the planner doesn't care whether a note is a musing or a phrase I liked, only whether it's actionable.
 
 ## How it was built
 
