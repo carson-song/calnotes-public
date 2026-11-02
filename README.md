@@ -68,6 +68,26 @@ There are two calendars - my "raw notes" calendar that I add to throughout the d
 - **Frontier answers vary run to run** (two identical Haiku runs disagreed on 16% of goal links), so single-run comparisons between frontier models need care.
 - Caveats: labels were revised after error analysis on the 7B run, which may favour it by a few notes; sending raw notes to the API for this comparison was a one-time, explicit opt-in (`--send-raw-notes`) that production never uses.
 
+## What's next?
+Having used the system for a few weeks, I've realized that my underlying note labeling scheme is flawed. It's not MECE (mutually exclusive and collectively exhaustive) nor does it scale well to other use cases (allowing the heavy classification work to be reused).
+
+A more useful framing is to plot every note along this 2-dimensional spectrum of temporal relevance and action-orientedness
+
+### The 2×2
+|                       | **Immediately relevant** | **Lifelong aspiration** |
+|-----------------------|--------------------------|-------------------------|
+| **Tactical action**   | **Do now**<br>"text nico", "call esther", "measure the hallway"<br> | **Someday projects**<br>"portfolio site for local makers", "invoice-chasing agent"<br>|
+| **Nostalgic notion**  | **Current state of mind**<br>"less planning, more doing", a mood, this week's worry<br> | **Keepsakes**<br>"a quiet kind of reckless", identity statements, phrases you liked<br> |
+
+
+### This structure scales very cleanly to other applications
+
+|                       | **Immediately relevant** | **Lifelong aspiration** |
+|-----------------------|--------------------------|-------------------------|
+| **Tactical action**   | **_calnotes daily scheduler (this app)_**  | Monthly/quarterly planning and goal-setting |
+| **Nostalgic notion**  | Digest of the week's best moments | Long-form review with selections from all historical entries |
+
+
 ## Run it (invented data, no accounts needed)
 
 ```bash
