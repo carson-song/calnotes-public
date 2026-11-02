@@ -1,20 +1,22 @@
 # calnotes
 
-**A hybrid local/frontier AI agent that turns messy, private notes into an approved daily plan, built so my raw notes never leave my machine.**
+**A hybrid local/frontier AI agent that turns messy, private notes into an approved daily plan.**
 
 I use Google Calendar as my primary note-taking mechanism. People generally see this as a bit unusual with so many dedicated "notes apps" on the market.  Why? 
-* It solves for fast ‘time-to-keyboard’ (I’ve found it’s faster to create a new event in GCal than it is to load a new blank note in many of the major note apps, even when using the "new note" home screen widget...) 
+* It solves for fast ‘time-to-keyboard’ (I’ve found it’s often faster to create a new event in GCal than it is to load a new blank note in many of the major note apps, even when using the "new note" home screen widget...) 
 * I can easily search for things by ‘fuzzy relative dates’ because the events are added 'temporally near' memorable events. "Alberto said this interesting thing at our last coffee catch-up which was roughly mid-March..."
-* It's easy to distinguish between 'nostalgic notes' and 'imminent to-dos' by simply putting them in the past/future on my calendar. 
-* I want a single interface for note entry but the type of note varies widely (Is this something to I want to remember later this week or to read again in a decade? Is this simply an amusing notion or a tactical next step?)
+* It's easy to distinguish between 'nostalgic notions' and 'imminent to-dos' by simply putting them in the past/future on my calendar. 
+* I want a single interface for note entry across a wide variety of note-types (Is this something to I want to remember later this week or to read again in a decade? Is this simply an amusing notion or a tactical next step?)
 
-For a few years now, I’ve been using the GCal notes method and it’s worked okay but still requires me to closely review this littering of notes to surface and schedule important action items. I want to surround myself with technology that helps keep me in a low-constraints creative flow state. Sorting through a notes directory or reading notes closely line-by-line is the exact opposite – a rigid, mechanistic way of looking. This felt like a good task for an LLM-powered agent – sift through noisy data, classify them for triage, and help surface important action items. 
+For a few years now, I’ve been using the GCal notes method and it’s worked okay but still requires me to closely review this weakly-structured littering of notes to surface and schedule important action items. I want to surround myself with technology that helps keep me in a low-constraints, creative headspace. Sorting through a file directory or reading notes closely line-by-line is the exact opposite – a rigid, mechanistic way of looking. This felt like a good task for an LLM-powered agent – sift through noisy data, classify them for triage, and help surface important action items. An attention aid that I can fine-tune to my goals.
 
-'calnotes' is a system I built that reads those notes every morning, works out which are tasks and which goals they serve, asks Claude to plan time for them around my real schedule, emails me the plan, and puts the blocks I approve on my calendar. 
+### 'calnotes' is a system I built that reads those notes every morning, works out which are tasks and which goals they serve, asks Claude to plan time for them around my real schedule, emails me the plan, and puts the blocks I approve on my calendar.
 
-I treated it as a deeply educational task -- What does it feel like to build alongside a coding agent? How do various models across the cost-capability pareto frontier perform at elements of this problem (e.g., fuzzy matching)? Is it changing my day-to-day productivity by suggesting actually useful tasks? What does it feel like to work with sensitive data and agents (e.g., strict boundary controls)
+I treated it as a deeply educational task -- What does it feel like to build alongside a coding agent? How do various models across the cost-capability pareto perform at elements of this problem (e.g., fuzzy matching)? Is it changing my day-to-day productivity by suggesting actually useful tasks? What does it feel like to work with sensitive data (e.g., strict boundary controls)?
 
-- **Raw notes stay local.** A deterministic rule stage and a local model (Ollama) do all reading of note text. Only a pseudonymized, allowlisted batch crosses to Claude, through an egress gate that fails closed.
+### A few rules of the road:
+
+- **Raw notes stay local.** A deterministic rule stage and a local model (Ollama) do all reading of note text. Only a pseudonymized, allowlisted batch crosses to an external, frontier model (Claude), through an egress gate that fails closed. (The notes live in GCal -- of course, they are exposed there -- but I'm simulating 'local boundary' for the agentic workflows as a proof of concept)
 - **Nothing a model writes can change my calendar.** Approval is a fixed reply grammar parsed by plain code, so text in an email can't talk the system into anything.
 - **It runs unattended** on a Mac mini: scheduled jobs, idempotent writes, retries, a dead man's switch.
 
@@ -22,27 +24,18 @@ I treated it as a deeply educational task -- What does it feel like to build alo
 
 ## How it works
 
-```
-notes calendar (read-only) ──▶ pull ──▶ ledger: what's still open?
-        │
-        ▼
- stage 1: rules (no model) ──▶ stage 2: local model (Ollama, qwen2.5:7b)      ← raw text never leaves the machine
-        │
-        ▼
- egress gate: allowlist by privacy level, names → [PERSON_n], items → handles  ← fails closed
-        │
-        ▼
- Claude planner agent (raw Anthropic SDK tool loop; sees busy TIMES only, never titles)
-        │
-        ▼
- vault maps handles back locally ──▶ email digest ──▶ my reply ("p1 accept", "p2 edit 60", "p3 reject later 7d")
-        │
-        ▼
- deterministic parser + state machine ──▶ calendar write (idempotency key, retries, conflict and expiry checks)
-        │
-        ▼
- every decision logged as eval data
-```
+There are two calendars - my "raw notes" calendar that I add to throughout the day, and my "primary" calendar that holds my actual scheduled meetings and tasks.
+
+1. All entries pulled from "raw notes" calendar (read-only) and are processed in the ledger -- a history of past decisions related to old notes. Open items (those that were previously marked as 'to-do's' and were not previously scheduled) are passed downstream.
+2. A set of deterministic rules (no model) is used to filter raw entries for real notes (to eliminate things like meetings that were accidentally scheduled onto the "raw notes" calendar). 
+3. A locally hosted model (Ollama, qwen2.5:7b) reviews the raw notes and organizes them across the semantic spectrum of 'to-do's' vs 'musings/notions'. Raw text never leaves the local machine. [Note: this feels like a good place to use a System One model like Jev instead of the rigid rules for robust classification performance while maintaining low cost].
+4. A strict boundary is enforced before passing the tagged notes upstream to a frontier model for strategic planning (vault dictionary from raw to blinded names, fail-closed egress gate, etc.)
+5. Claude planner agent (raw Anthropic SDK tool loop) checks "primary calendar" for free slots (sees busy TIMES only, never event titles) and handles the 'high strategy task' of picking the most relevant tasks for the day. Generates email digest with top 5 suggestions and rationale, considering how each task connects to my pre-defined goals.
+6. Locally, the email digest is repopoulated with raw names before being sent to my personal email. I have this digest loops configured to run daily at 7am. 
+7. Nothing is added to the calendar until I reply to the email in a structured acceptance format ("p1 accept", "p2 edit 60", "p3 reject later 7d"). 
+8. An 'approving' agent is configured to review my inbox every 15mins for such replies and uses a deterministic parser + state machine to write accepted tasks to calendar.
+9. Every decision logged as eval data to track engagement with the tool and performance of the suggestion engine.
+
 
 | Folder | What's in it |
 |---|---|
