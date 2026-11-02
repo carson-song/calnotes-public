@@ -1,0 +1,47 @@
+id,date,title_raw,is_note,type,normalized_text,goal_link,company,people,next_action,duplicate_of,split_into,musing_theme,good_words_rank,confidence,needs_clarification
+n01,2026-10-06,lumenware - coffee union sq,FALSE,event,Coffee with Lumenware at Union Square,G1,lumenware,,,,,,,medium,Job-related (G1)?
+n02,2026-10-06,oskar?,FALSE,event,Hang with Oskar,,,Oskar,,,,,,medium,"Title has '?' - tentative, or did it happen?"
+n03,2026-10-07,mara and teo,FALSE,event,Hang with Mara and Teo,,,Mara; Teo,,,,,,high,
+n04,2026-10-08,voltaic heat pump demo,FALSE,event,Voltaic heat pump demo,G1,voltaic,,,,,,,high,
+n05,2026-10-08,2pm Lena Hartmann call,FALSE,event,Call with Lena Hartmann,,,Lena Hartmann,,,,,,high,
+n06,2026-10-09,sam corner coffee 11.45,FALSE,event,Coffee with Sam at the corner cafe,,,Sam,,,,,,high,Title says 11:45 but event starts 11:00 - which is right?
+n07,2026-10-09,felix ward beer at the pier,FALSE,event,Beer with Felix Ward at the pier,,,Felix Ward,,,,,,high,
+n08,2026-10-09,makers guild show,FALSE,event,Makers guild show,G3,,,,,,,,medium,
+n09,2026-10-10,Pair session with JR + measure hallway for shelf,FALSE,event,Pair session with JR; measure hallway for shelf,G2,,JR,Measure hallway for shelf,,,,,medium,Which project is the shelf for?
+n10,2026-10-11,Lunch with Ada,FALSE,event,Lunch with Ada,,,Ada,,,,,,high,
+n11,2026-10-11,tandem sms booking,TRUE,action,Tandem SMS booking,G1,,,,,,,,low,"A booking you made, or an idea about SMS-based booking?"
+n12,2026-10-11,just vibing,TRUE,musing,just vibing,,,,,,,,,low,Good words or a mood log?
+n13,2026-10-11,craft day teo ines rui,FALSE,event,"Craft day with Teo, Ines, Rui",G2,,Teo; Ines; Rui,,,,,,medium,
+n14,2026-10-11,a quiet kind of reckless,TRUE,good_words,a quiet kind of reckless,,,,,,,,,high,
+n15,2026-10-11,whta shoudl peopel do. the big ai qeustions,TRUE,musing,what should people do? the big AI questions,G1,,,,,,AI and humanity,,low,Decoded from heavy typos - correct?
+n16,2026-10-11,my favourite flaw,TRUE,good_words,my favourite flaw,,,,,,,,,high,
+n17,2026-10-11,furniture sourcing and delivery logistics,TRUE,business_idea,furniture sourcing and delivery logistics,G3,,,,,,,,high,
+n18,2026-10-11,not studying jsut building. fun things trips and woodworking projects,TRUE,musing,"not studying, just building. fun things: trips and woodworking projects",,,,,,,doing over learning,,medium,
+n19,2026-10-11,a small victory. bottle of red,TRUE,good_words,a small victory. bottle of red,,,,,,,,,high,
+n20,2026-10-11,less planning. more doing,TRUE,musing,less planning. more doing,,,,,,,action and momentum,,high,
+n21,2026-10-11,how to set my own direction with no boss or deadline,TRUE,musing,how to set my own direction with no boss or deadline,G1,,,,,,self-direction,,high,
+n22,2026-10-11,coffee shops as galleries. aspirational,TRUE,musing,coffee shops as galleries. aspirational,G3,,,,,,,,medium,
+n23,2026-10-11,made in portugal. stamped with a quality mark,TRUE,business_idea,made in portugal. stamped with a quality mark,G3,,,,,,,,low,A quality-mark or provenance idea for curated furniture?
+n24,2026-10-11,i'm not a designer im not a builder. i learn.,TRUE,musing,i'm not a designer. i'm not a builder. i learn.,G3,,,,,,identity,,high,
+n25,2026-10-11,a quiet kind of reckless. thats the trick,TRUE,good_words,a quiet kind of reckless. that's the trick,,,,,n14,,,,high,Merge with n14?
+n26,2026-10-11,a shared kanban for my roommates. assign each other chores,TRUE,project_idea,a shared kanban for my roommates. assign each other chores,G1,,,,,,,,high,
+n27,2026-10-11,connector. curating beats sketching alone.,TRUE,musing,connector. curating beats sketching alone.,G3,,,,,,identity,,high,
+n28,2026-10-11,build - portfolio site for local makers. studios that share one material,TRUE,project_idea,build a portfolio site for local makers: studios that share one material,G3,,,List local studios that share one material,,,,,high,
+n29,2026-10-11,goal 4. become a lighthouse,TRUE,goal,goal 4: become a lighthouse,,,,,,,,,high,
+n30,2026-10-11,my goals nov. 1. land a role in ai or hardware...,TRUE,goal,November goals,G1; G2; G3,,Ines,Find the furniture designers (G3),,G1: land a role in AI or hardware - learn from strong teams | G2: finish Ines's apartment - make and finish physical things | G3: furniture sourcing - find the designers,,,high,
+n31,2026-10-11,i cant draw i cant build. selling is my thing. so meet the makers and get their work seen,TRUE,musing,i can't draw or build. selling is my thing. so meet the makers and get their work seen,G3,,,,,,identity,,high,
+n32,2026-10-12,list my routines and find automatable chores,TRUE,project_idea,list my routines and find automatable chores,G1,,,,,,,,high,
+n33,2026-10-12,risks of reward hacking in rl trainign,TRUE,learning_topic,risks of reward hacking in RL training,G1,,,,,,,,high,
+n34,2026-10-12,sell the orla canvas tote bag,TRUE,action,sell the Orla canvas tote bag,G3,,,List the tote for sale,,,,,high,
+n35,2026-10-12,evals and tracing,TRUE,learning_topic,evals and tracing,G1,,,,,,,,high,
+n36,2026-10-12,weak at novel ideas. or picking research directions. jagged frontier.,TRUE,learning_topic,weak at novel ideas or picking research directions. jagged frontier.,G1,,,,,,,,high,
+n37,2026-10-12,noor - juniper homegoods,FALSE,event,Meet Noor from Juniper Homegoods at Lantern Coffee,G3,,Noor,,,,,,high,
+n38,2026-10-12,rent floor space for a furniture showroom or design shwroom. and consignment pieces,TRUE,business_idea,rent floor space for a furniture or design showroom; consignment pieces,G3,,,,,,,,high,
+n39,2026-10-12,offline humidity sensor. containment and evals. scaling laws,TRUE,learning_topic,offline humidity sensor. containment and evals. scaling laws,G1,,,,,,,,high,
+n40,2026-10-12,text nico. and ben okafor,TRUE,action,text Nico and Ben Okafor,G1,,Nico; Ben Okafor,Text Nico; Text Ben Okafor,,Text Nico | Text Ben Okafor,,,high,
+n41,2026-10-12,money. invoice chasing agent,TRUE,project_idea,money: an invoice-chasing agent,G1,,,,,,,,medium,
+n42,2026-10-12,teos goals nov...,TRUE,other_person_goal,Teo's November goals,,,Teo,,,finish the novel draft | run a half marathon | learn to cook three dishes,,,high,
+n43,2026-10-12,ines goals nov. 3 months...,TRUE,other_person_goal,Ines's November goals (3 months),,,Ines,Prepare 2 slide decks for Ines,,launch the ceramics shop | repaint the studio | 2 slide decks from me | gym three days a week,,,high,Contains an action for you (2 slide decks)
+n44,2026-10-13,kai park interview,FALSE,event,Kai Park interview,G1,,Kai Park,,,,,,low,A meeting or an interview to watch (learning topic)?
+n45,2026-10-13,makers guild: sourcing abroad - creatives,FALSE,event,Makers guild: sourcing abroad for creatives,G3,,,,,,,,medium,
+n46,2026-10-14,drink with k from marlowe books store,FALSE,event,Drink with K from Marlowe Books at Copper Bar,G3,,K,,,,,,medium,G3-related (design and bookshop contacts)?

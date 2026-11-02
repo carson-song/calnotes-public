@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calnotes labeler</title>
+<!--
+  Hand-labeling tool for calnotes. Runs entirely in your browser from a local file: no server, no network,
+  nothing leaves your machine. Open it by double-clicking, then load a CSV in the labels schema
+  (data/fresh/to_label.csv). Progress autosaves in this browser; "Export" downloads the labels CSV.
+-->
+<style>
+:root {
+  --bg: #f4f5f7; --card: #ffffff; --ink: #1f2328; --muted: #5b636e; --line: #dfe3e8; --accent: #1d4ed8;
+  --accent-soft: #e8efff; --done: #047857; --warn: #b45309; --kbd: #eef0f2;
+  --g1: #1d4ed8; --g1s: #e8efff; --g2: #047857; --g2s: #e3f6ee; --g3: #b45309; --g3s: #fdf0dc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --card: #1e2125; --ink: #e8eaed; --muted: #9aa3ad; --line: #30353b; --accent: #7aa2ff;
+    --accent-soft: #1f2a44; --done: #4fd1a5; --warn: #f0b35a; --kbd: #2a2e34;
+    --g1: #9bb8ff; --g1s: #1f2a44; --g2: #6fdcb3; --g2s: #173328; --g3: #f3c17a; --g3s: #3a2a14;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+button, input, select, textarea { font: inherit; color: inherit; }
+header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line);
+  padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+header h1 { font-size: 16px; margin: 0 8px 0 0; }
+.progress { flex: 1; min-width: 160px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+.bar { flex: 1; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar > div { height: 100%; background: var(--done); width: 0; transition: width .2s; }
+.btn { border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+@media (max-width: 860px) { main { grid-template-columns: 1fr; } aside { order: 2; } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.meta { color: var(--muted); font-size: 13px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 6px; background: var(--ink); color: var(--card); font-weight: 700; font-size: 12px; }
+.status { margin-left: auto; font-weight: 600; }
+.status.done { color: var(--done); } .status.todo { color: var(--warn); }
+.title { font-size: 21px; font-weight: 650; margin: 10px 0 6px; overflow-wrap: anywhere; }
+.context { font-size: 13px; color: var(--muted); white-space: pre-wrap; margin-bottom: 6px; overflow-wrap: anywhere; }
+.section { margin-top: 16px; }
+.section > label, .label { display: block; font-size: 12px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.choice { border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 6px 10px; cursor: pointer;
+  display: inline-flex; gap: 6px; align-items: center; }
+.choice:hover { border-color: var(--muted); }
+.choice.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.choice.g1.on { background: var(--g1s); border-color: var(--g1); color: var(--g1); }
+.choice.g2.on { background: var(--g2s); border-color: var(--g2); color: var(--g2); }
+.choice.g3.on { background: var(--g3s); border-color: var(--g3); color: var(--g3); }
+kbd { font: 11px ui-monospace, Menlo, monospace; background: var(--kbd); border-radius: 4px; padding: 1px 5px; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+@media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+input[type=text] { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.nav { display: flex; gap: 8px; margin-top: 18px; align-items: center; flex-wrap: wrap; }
+.nav .spacer { flex: 1; }
+aside .card { position: sticky; top: 70px; font-size: 13px; max-height: calc(100vh - 90px); overflow: auto; }
+aside h2 { font-size: 14px; margin: 0 0 8px; }
+aside dl { margin: 0; } aside dt { font-weight: 600; margin-top: 8px; } aside dd { margin: 0; color: var(--muted); }
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 40px 20px; margin-top: 16px; }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.hidden { display: none !important; }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--card);
+  padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.list { position: relative; max-height: 220px; overflow: auto; margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.list a { display: block; color: var(--muted); text-decoration: none; padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.list a.cur { color: var(--ink); font-weight: 600; }
+.list a .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; background: var(--line); }
+.list a .dot.done { background: var(--done); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Calnotes labeler</h1>
+  <div class="progress"><div class="bar"><div id="bar"></div></div><span id="count">no file</span></div>
+  <label class="btn">Load CSV<input id="file" type="file" accept=".csv,text/csv" hidden></label>
+  <button class="btn primary" id="export" disabled>Export labels</button>
+</header>
+
+<main>
+  <section>
+    <div id="empty" class="card empty">
+      <div style="font-size:17px;color:var(--ink);font-weight:600">Load a CSV to start</div>
+      <div>Use <code>data/fresh/to_label.csv</code>, or a labels file you exported earlier to keep going.</div>
+      <div id="drop" class="drop">Drop the CSV here</div>
+      <div style="margin-top:14px;font-size:13px">Everything stays in this browser. Nothing is uploaded.</div>
+    </div>
+
+    <div id="work" class="card hidden">
+      <div class="meta">
+        <span class="pill" id="itemId"></span>
+        <span id="when"></span>
+        <span id="pos"></span>
+        <span class="status" id="status"></span>
+      </div>
+      <div class="title" id="title"></div>
+      <div class="context" id="ctx"></div>
+
+      <div class="section">
+        <span class="label">Type</span>
+        <div class="choices" id="types"></div>
+      </div>
+
+      <div class="section" id="themeRow">
+        <span class="label">Musing theme</span>
+        <div class="choices" id="themes"></div>
+      </div>
+
+      <div class="section">
+        <span class="label">Goal links <span style="text-transform:none;letter-spacing:0;font-weight:400">(none selected = no goal)</span></span>
+        <div class="choices" id="goals"></div>
+      </div>
+
+      <div class="section">
+        <span class="label">Confidence</span>
+        <div class="choices" id="conf"></div>
+      </div>
+
+      <div class="section grid2">
+        <div><label for="f_norm">Normalized text</label><input type="text" id="f_norm" data-field="normalized_text"></div>
+        <div><label for="f_next">Next action</label><input type="text" id="f_next" data-field="next_action" placeholder="verb first; actions only"></div>
+        <div><label for="f_people">People</label><input type="text" id="f_people" data-field="people" placeholder="separate with ;"></div>
+        <div><label for="f_company">Company</label><input type="text" id="f_company" data-field="company" placeholder="lowercase"></div>
+        <div><label for="f_dup">Duplicate of</label><input type="text" id="f_dup" data-field="duplicate_of" placeholder="id, e.g. n014"></div>
+        <div><label for="f_q">Your open question</label><input type="text" id="f_q" data-field="needs_clarification" placeholder="if a reasonable person could disagree"></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn" id="prev">← Back</button>
+        <button class="btn" id="nextTodo">Next unlabeled</button>
+        <span class="spacer"></span>
+        <span style="color:var(--muted);font-size:13px">Enter saves and moves on</span>
+        <button class="btn primary" id="next">Next →</button>
+      </div>
+    </div>
+  </section>
+
+  <aside>
+    <div class="card">
+      <h2>Keys</h2>
+      <div><kbd>1</kbd>–<kbd>9</kbd> type · <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> goals G1 G2 G3</div>
+      <div style="margin-top:4px"><kbd>H</kbd> <kbd>M</kbd> <kbd>L</kbd> confidence · <kbd>Enter</kbd> or <kbd>→</kbd> next · <kbd>←</kbd> back</div>
+      <div style="margin-top:4px"><kbd>N</kbd> edit normalized text · <kbd>Esc</kbd> leave a text box</div>
+      <h2 style="margin-top:14px">Guide (rules v0.3)</h2>
+      <dl>
+        <dt>event</dt><dd>A real plan to meet or attend.</dd>
+        <dt>action</dt><dd>A concrete thing to do, even terse ("text nico").</dd>
+        <dt>project_idea</dt><dd>Something to build, usually software or a portfolio piece.</dd>
+        <dt>business_idea</dt><dd>A venture, offering or market move.</dd>
+        <dt>learning_topic</dt><dd>A subject to study, or a concept that builds toward a goal.</dd>
+        <dt>goal / other_person_goal</dt><dd>Your own explicit goals / a friend's goals you wrote down.</dd>
+        <dt>musing</dt><dd>A thought, belief, mood or aspiration: paraphrasing keeps its value.</dd>
+        <dt>good_words</dt><dd>Kept for its sound: paraphrasing destroys it.</dd>
+        <dt>G1 · job / AI</dt><dd>Job leads, networking, any AI build, AI learning, self-direction about work.</dd>
+        <dt>G2 · build-out</dt><dd>a friend's apartment; making and finishing physical things.</dd>
+        <dt>G3 · furniture</dt><dd>Designers, makers, showrooms, homegoods, art scene, selling.</dd>
+        <dt>Confidence low</dt><dd>A reasonable person could label it differently: add your question.</dd>
+      </dl>
+      <div class="list" id="list"></div>
+    </div>
+  </aside>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const COLS = ["id","date","title_raw","is_note","type","normalized_text","goal_link","company","people","next_action",
+  "duplicate_of","split_into","musing_theme","good_words_rank","confidence","needs_clarification"];
+const TYPES = ["event","action","project_idea","business_idea","learning_topic","goal","other_person_goal","musing","good_words"];
+const THEMES = ["identity","self-direction","action and momentum","doing over learning","AI and humanity"];
+const GOALS = [["G1","job / AI","q"],["G2","build-out","w"],["G3","furniture","e"]];
+const CONF = [["high","h"],["medium","m"],["low","l"]];
+
+let rows = [], order = [], cur = 0, fileKey = "";
+const $ = (id) => document.getElementById(id);
+
+// ---- CSV (RFC 4180: quoted fields may hold commas, quotes and newlines) ----
+function parseCSV(text) {
+  const out = []; let row = [], f = "", q = false;
+  text = text.replace(/^﻿/, "");
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; }
+      else f += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(f); f = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(f); f = ""; if (row.some(x => x !== "")) out.push(row); row = [];
+    } else f += c;
+  }
+  row.push(f); if (row.some(x => x !== "")) out.push(row);
+  const head = out.shift() || [];
+  return out.map(r => Object.fromEntries(head.map((h, i) => [h.trim(), r[i] ?? ""])));
+}
+const cell = (v) => /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+
+// ---- storage: per-browser convenience only; Export is the real save ----
+function saveLocal() {
+  try { localStorage.setItem("calnotes-labels:" + fileKey, JSON.stringify(rows.map(r => pick(r)))); } catch (e) {}
+}
+function loadLocal() {
+  try { return JSON.parse(localStorage.getItem("calnotes-labels:" + fileKey) || "null"); } catch (e) { return null; }
+}
+const pick = (r) => Object.fromEntries(COLS.map(c => [c, r[c] ?? ""]));
+
+function load(text, name) {
+  const parsed = parseCSV(text);
+  if (!parsed.length || !("id" in parsed[0]) || !("title_raw" in parsed[0])) { toast("That file isn't in the labels format"); return; }
+  rows = parsed; fileKey = name;
+  const saved = loadLocal();
+  if (saved) {
+    const byId = Object.fromEntries(saved.map(r => [r.id, r]));
+    let restored = 0;
+    rows.forEach(r => { const s = byId[r.id]; if (s && s.type && !r.type) { COLS.forEach(c => { if (c in s) r[c] = s[c]; }); restored++; } });
+    if (restored) toast(`Restored ${restored} labels saved in this browser`);
+  }
+  const hasOrder = rows.every(r => r.label_order);
+  order = rows.map((_, i) => i).sort((a, b) => hasOrder ? (+rows[a].label_order - +rows[b].label_order) : 0);
+  const firstTodo = order.findIndex(i => !done(rows[i]));
+  cur = firstTodo === -1 ? 0 : firstTodo;
+  $("empty").classList.add("hidden"); $("work").classList.remove("hidden"); $("export").disabled = false;
+  render();
+}
+
+const done = (r) => !!(r.type && r.confidence);
+const row = () => rows[order[cur]];
+
+function set(field, value) {
+  const r = row(); r[field] = value;
+  if (field === "type") {
+    r.is_note = value === "event" ? "FALSE" : "TRUE";
+    if (value !== "musing") r.musing_theme = "";
+    if (!r.confidence) r.confidence = "high";
+  }
+  saveLocal(); render();
+}
+function toggleGoal(g) {
+  const r = row(); const s = new Set((r.goal_link || "").split(";").map(x => x.trim()).filter(Boolean));
+  s.has(g) ? s.delete(g) : s.add(g);
+  r.goal_link = [...s].sort().join("; "); saveLocal(); render();
+}
+
+function chooser(el, items, isOn, onClick, cls = () => "") {
+  el.replaceChildren(...items.map(([value, label, key]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "choice " + cls(value) + (isOn(value) ? " on" : "");
+    b.append(document.createTextNode(label));
+    if (key) { const k = document.createElement("kbd"); k.textContent = key.toUpperCase(); b.append(k); }
+    b.onclick = () => onClick(value); return b;
+  }));
+}
+
+function fmtWhen(r) {
+  if (!r.start) return r.date;
+  const s = new Date(r.start), e = r.end ? new Date(r.end) : null;
+  const d = s.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  const t = (x) => x.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  const mins = e ? Math.round((e - s) / 60000) : null;
+  return `${d} · ${t(s)}${e ? "–" + t(e) : ""}${mins ? ` · ${mins} min` : ""}`;
+}
+
+function render() {
+  const r = row(), n = rows.length, k = rows.filter(done).length;
+  $("bar").style.width = (100 * k / n) + "%";
+  $("count").textContent = `${k} of ${n} labeled`;
+  $("itemId").textContent = r.id;
+  $("when").textContent = fmtWhen(r);
+  $("pos").textContent = `item ${cur + 1} of ${n}`;
+  const st = $("status"); st.textContent = done(r) ? "labeled" : "to do"; st.className = "status " + (done(r) ? "done" : "todo");
+  $("title").textContent = r.title_raw;
+  $("ctx").textContent = [r.location && "Location: " + r.location, r.description && "Description: " + r.description]
+    .filter(Boolean).join("\n");
+  chooser($("types"), TYPES.map((t, i) => [t, t.replace(/_/g, " "), String(i + 1)]), v => r.type === v, v => set("type", v));
+  $("themeRow").classList.toggle("hidden", r.type !== "musing");
+  chooser($("themes"), THEMES.map(t => [t, t]), v => r.musing_theme === v, v => set("musing_theme", v));
+  const goals = new Set((r.goal_link || "").split(";").map(x => x.trim()));
+  chooser($("goals"), GOALS.map(([g, l, key]) => [g, `${g} · ${l}`, key]), v => goals.has(v), toggleGoal, v => v.toLowerCase());
+  chooser($("conf"), CONF.map(([c, key]) => [c, c, key]), v => r.confidence === v, v => set("confidence", v));
+  document.querySelectorAll("input[data-field]").forEach(inp => {
+    if (document.activeElement !== inp) inp.value = r[inp.dataset.field] || "";
+  });
+  renderList();
+}
+
+function renderList() {
+  const el = $("list");
+  el.replaceChildren(...order.map((idx, pos) => {
+    const r = rows[idx], a = document.createElement("a");
+    if (pos === cur) a.className = "cur";
+    const dot = document.createElement("span"); dot.className = "dot" + (done(r) ? " done" : "");
+    a.append(dot, document.createTextNode(`${r.id}  ${r.title_raw}`));
+    a.onclick = () => { cur = pos; render(); }; return a;
+  }));
+  // Scroll only the list, never the page (scrollIntoView would move the whole window).
+  const c = el.querySelector(".cur");
+  if (c) el.scrollTop = Math.max(0, c.offsetTop - el.offsetTop - el.clientHeight / 2);
+}
+
+function go(delta) { cur = Math.max(0, Math.min(order.length - 1, cur + delta)); render(); window.scrollTo({ top: 0 }); }
+function nextTodo() {
+  for (let s = 1; s <= order.length; s++) {
+    const p = (cur + s) % order.length;
+    if (!done(rows[order[p]])) { cur = p; render(); return; }
+  }
+  toast("Everything is labeled. Export when you're ready.");
+}
+function advance() {
+  if (!done(row())) { toast("Pick a type first (1–9)"); return; }
+  if (cur < order.length - 1) go(1); else nextTodo();
+}
+
+function exportCSV() {
+  const labeled = rows.filter(done);
+  const lines = [COLS.join(",")].concat(labeled.map(r => COLS.map(c => cell(String(r[c] ?? ""))).join(",")));
+  const blob = new Blob([lines.join("\n") + "\n"], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "labels.csv"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`Exported ${labeled.length} rows: save as data/fresh/labels.csv`);
+}
+
+let toastTimer;
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200); }
+
+// ---- wiring ----
+$("file").onchange = (e) => { const f = e.target.files[0]; if (f) f.text().then(t => load(t, f.name)); };
+const drop = $("drop");
+drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); const f = e.dataTransfer.files[0]; if (f) f.text().then(t => load(t, f.name)); };
+$("export").onclick = exportCSV;
+$("prev").onclick = () => go(-1);
+$("next").onclick = advance;
+$("nextTodo").onclick = nextTodo;
+document.querySelectorAll("input[data-field]").forEach(inp => {
+  inp.addEventListener("input", () => { row()[inp.dataset.field] = inp.value; saveLocal(); });
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); inp.blur(); advance(); }
+    if (e.key === "Escape") inp.blur();
+  });
+});
+document.addEventListener("keydown", (e) => {
+  if (!rows.length || e.target.tagName === "INPUT" || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k >= "1" && k <= "9") set("type", TYPES[+k - 1]);
+  else if (GOALS.some(g => g[2] === k)) toggleGoal(GOALS.find(g => g[2] === k)[0]);
+  else if (CONF.some(c => c[1] === k)) set("confidence", CONF.find(c => c[1] === k)[0]);
+  else if (k === "enter" || k === "arrowright") { e.preventDefault(); advance(); }
+  else if (k === "arrowleft") go(-1);
+  else if (k === "n") { e.preventDefault(); $("f_norm").focus(); $("f_norm").select(); }
+  else return;
+});
+window.addEventListener("beforeunload", (e) => { if (rows.some(done)) { saveLocal(); } });
+</script>
+</body>
+</html>

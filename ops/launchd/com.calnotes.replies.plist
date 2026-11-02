@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Template: ops/install_launchd.sh fills in the __PLACEHOLDERS__ and loads it. Don't edit the installed copy. -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.calnotes.replies</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>__PYTHON__</string>
+        <string>__REPO__/scheduled.py</string>
+        <string>replies</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>__REPO__</string>
+    <key>StartInterval</key>
+    <integer>900</integer>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key><string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+        <key>CALNOTES_DIGEST_TO</key><string>__DIGEST_TO__</string>
+        <key>CALNOTES_PLANS_ACCOUNT</key><string>__PLANS_ACCOUNT__</string>
+        <key>CALNOTES_NOTES_ACCOUNT</key><string>__NOTES_ACCOUNT__</string>
+        <key>CALNOTES_HC_REPLIES</key><string>__HC_REPLIES__</string>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>__REPO__/runs/logs/replies.log</string>
+    <key>StandardErrorPath</key>
+    <string>__REPO__/runs/logs/replies.log</string>
+</dict>
+</plist>

@@ -1,0 +1,9 @@
+vault/
+runs/
+__pycache__/
+secrets/
+.DS_Store
+.env
+.venv/
+ops/private_terms.txt
+data/live/
